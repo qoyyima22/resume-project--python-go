@@ -25,42 +25,44 @@ const (
 )
 
 type sections_content struct {
-	Section_work_experience_en string `json:"section_work_experience_en"`
-	Section_work_experience_id string `json:"section_work_experience_id"`
-	Section_educations_en      string `json:"section_educations_en"`
-	Section_educations_id      string `json:"section_educations_id"`
-	Section_skills_en          string `json:"section_skills_en"`
-	Section_skills_id          string `json:"section_skills_id"`
-	Section_summary_en         string `json:"section_summary_en"`
-	Section_summary_id         string `json:"section_summary_id"`
-	Section_interests_en       string `json:"section_interests_en"`
-	Section_interests_id       string `json:"section_interests_id"`
-	Section_extras_en          string `json:"section_extras_en"`
-	Section_extras_id          string `json:"section_extras_id"`
-	Section_languages_en       string `json:"section_languages_en"`
-	Section_languages_id       string `json:"section_languages_id"`
-	Section_title_en           string `json:"section_title_en"`
-	Section_title_id           string `json:"section_title_id"`
-	Section_affiliations_en    string `json:"section_affiliations_en"`
-	Section_affiliations_id    string `json:"section_affiliations_id"`
-	Section_certifications_en  string `json:"section_certifications_en"`
-	Section_certifications_id  string `json:"section_certifications_id"`
-	Section_awards_en          string `json:"section_awards_en"`
-	Section_awards_id          string `json:"section_awards_id"`
+	Section_work_experience_en []string `json:"section_work_experience_en"`
+	Section_work_experience_id []string `json:"section_work_experience_id"`
+	Section_educations_en      []string `json:"section_educations_en"`
+	Section_educations_id      []string `json:"section_educations_id"`
+	Section_skills_en          []string `json:"section_skills_en"`
+	Section_skills_id          []string `json:"section_skills_id"`
+	Section_summary_en         []string `json:"section_summary_en"`
+	Section_summary_id         []string `json:"section_summary_id"`
+	Section_interests_en       []string `json:"section_interests_en"`
+	Section_interests_id       []string `json:"section_interests_id"`
+	Section_extras_en          []string `json:"section_extras_en"`
+	Section_extras_id          []string `json:"section_extras_id"`
+	Section_languages_en       []string `json:"section_languages_en"`
+	Section_languages_id       []string `json:"section_languages_id"`
+	Section_title_en           []string `json:"section_title_en"`
+	Section_title_id           []string `json:"section_title_id"`
+	Section_affiliations_en    []string `json:"section_affiliations_en"`
+	Section_affiliations_id    []string `json:"section_affiliations_id"`
+	Section_certifications_en  []string `json:"section_certifications_en"`
+	Section_certifications_id  []string `json:"section_certifications_id"`
+	Section_awards_en          []string `json:"section_awards_en"`
+	Section_awards_id          []string `json:"section_awards_id"`
 }
 
 type req_body struct {
-	Folder            string
-	HTML              string
-	Title             string
-	En                string
-	Id                string
-	Score             int
-	Sections          []string
-	SectionsId        []string
-	SectionCategory   []string
-	SectionCategoryId []string
-	SectionsContent   map[string]interface{}
+	Folder                string
+	HTML                  string
+	Title                 string
+	En                    string
+	Id                    string
+	Score                 int
+	Sections              []string
+	SectionsId            []string
+	SectionCategory       []string
+	SectionCategoryId     []string
+	SectionsContent       map[string]interface{}
+	ListSectionsContent   [][]string
+	ListSectionsContentId [][]string
 }
 
 func main() {
@@ -89,11 +91,13 @@ func processRequest(w http.ResponseWriter, r *http.Request) {
 
 	mapstructure.Decode(t.SectionsContent, &nsc)
 
+	fmt.Println(t.ListSectionsContent)
+
 	w.Write([]byte("Success "))
-	insertToTable(t.Folder, t.Title, t.HTML, t.En, t.Id, t.Score, nsc, t.Sections, t.SectionsId, t.SectionCategory, t.SectionCategoryId)
+	insertToTable(t.Folder, t.Title, t.HTML, t.En, t.Id, t.Score, nsc, t.Sections, t.SectionsId, t.SectionCategory, t.SectionCategoryId, t.ListSectionsContent, t.ListSectionsContentId)
 }
 
-func insertToTable(Folder string, Title string, HTML string, En string, Id string, Score int, nsc sections_content, Sections []string, SectionsId []string, SectionCategory []string, SectionCategoryId []string) {
+func insertToTable(Folder string, Title string, HTML string, En string, Id string, Score int, nsc sections_content, Sections []string, SectionsId []string, SectionCategory []string, SectionCategoryId []string, ListSectionsContent [][]string, ListSectionsContentId [][]string) {
 
 	// fmt.Println("\n=======\n", nsc, "\n============\n", nsc.Section_title_en, "NINININIG")
 
@@ -141,7 +145,9 @@ func insertToTable(Folder string, Title string, HTML string, En string, Id strin
 		sections,
 		sections_id,
 		sections_category,
-		sections_category_id
+		sections_category_id,
+		list_sections_content_en,
+		list_sections_content_id
 	)
 	VALUES (
 		$1,
@@ -177,7 +183,9 @@ func insertToTable(Folder string, Title string, HTML string, En string, Id strin
 		$31,
 		$32,
 		$33,
-		$34
+		$34,
+		$35,
+		$36
 	)
     RETURNING id
 	`
@@ -192,32 +200,36 @@ func insertToTable(Folder string, Title string, HTML string, En string, Id strin
 		Id,
 		Score,
 		Folder,
-		nsc.Section_work_experience_en,
-		nsc.Section_work_experience_id,
-		nsc.Section_educations_en,
-		nsc.Section_educations_id,
-		nsc.Section_skills_en,
-		nsc.Section_skills_id,
-		nsc.Section_summary_en,
-		nsc.Section_summary_id,
-		nsc.Section_interests_en,
-		nsc.Section_interests_id,
-		nsc.Section_extras_en,
-		nsc.Section_extras_id,
-		nsc.Section_languages_en,
-		nsc.Section_languages_id,
-		nsc.Section_title_en,
-		nsc.Section_title_id,
-		nsc.Section_affiliations_en,
-		nsc.Section_affiliations_id,
-		nsc.Section_certifications_en,
-		nsc.Section_certifications_id,
-		nsc.Section_awards_en,
-		nsc.Section_awards_id,
+		strings.Join(nsc.Section_work_experience_en, ", "),
+		strings.Join(nsc.Section_work_experience_id, ", "),
+		strings.Join(nsc.Section_educations_en, ", "),
+		strings.Join(nsc.Section_educations_id, ", "),
+		strings.Join(nsc.Section_skills_en, ", "),
+		strings.Join(nsc.Section_skills_id, ", "),
+		strings.Join(nsc.Section_summary_en, ", "),
+		strings.Join(nsc.Section_summary_id, ", "),
+		strings.Join(nsc.Section_interests_en, ", "),
+		strings.Join(nsc.Section_interests_id, ", "),
+		strings.Join(nsc.Section_extras_en, ", "),
+		strings.Join(nsc.Section_extras_id, ", "),
+		strings.Join(nsc.Section_languages_en, ", "),
+		strings.Join(nsc.Section_languages_id, ", "),
+		strings.Join(nsc.Section_title_en, ", "),
+		strings.Join(nsc.Section_title_id, ", "),
+		strings.Join(nsc.Section_affiliations_en, ", "),
+		strings.Join(nsc.Section_affiliations_id, ", "),
+		strings.Join(nsc.Section_certifications_en, ", "),
+		strings.Join(nsc.Section_certifications_id, ", "),
+		strings.Join(nsc.Section_awards_en, ", "),
+		strings.Join(nsc.Section_awards_id, ", "),
 		strings.Join(Sections, ", "),
 		strings.Join(SectionsId, ", "),
 		strings.Join(SectionCategory, ", "),
 		strings.Join(SectionCategoryId, ", "),
+		"",
+		"",
+		// strings.Join(ListSectionsContent, ", "),
+		// strings.Join(ListSectionsContentId, ", "),
 	).
 		Scan(&id)
 	if err != nil {

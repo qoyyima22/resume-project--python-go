@@ -14,8 +14,8 @@ ts = Translator()
 driver = webdriver.Chrome(executable_path="/usr/local/bin/chromedriver")
 
 driver.get(
-    "https://www.livecareer.co.uk/cv-search/r/solutions-engineer-senior-pre-sales-consultant-7e6bc0a669014176959f00791e69152f")
-# "file:///home/qoyyima/Downloads/WAREHOUSE%20OPERATIVE%20CV%20Example%20PARCELFORCE%20WORLDWIDE%20-%20Nechells,%20Birmingham.html")
+    # "https://www.livecareer.co.uk/cv-search/r/solutions-engineer-senior-pre-sales-consultant-7e6bc0a669014176959f00791e69152f")
+    "file:///home/qoyyima/Downloads/WAREHOUSE%20OPERATIVE%20CV%20Example%20PARCELFORCE%20WORLDWIDE%20-%20Nechells,%20Birmingham.html")
 
 # get raw data
 content = driver.page_source
@@ -23,12 +23,13 @@ content = driver.page_source
 soup = BeautifulSoup(content, 'html.parser')
 
 documentHTML = soup.find_all('div', id="document")[0]
-document = documentHTML.get_text()
+document = documentHTML.get_text(strip=False)
 
-scoreTemp = soup.find_all('h3', class_="resume-score")[0].get_text()
+scoreTemp = soup.find_all(
+    'h3', class_="resume-score")[0].get_text(strip=False)
 score = int(re.findall(r'\d+', scoreTemp)[0])
 
-title = soup.find_all('h1', class_="h1")[0].get_text()
+title = soup.find_all('h1', class_="h1")[0].get_text(strip=False)
 
 # processing section titles
 children = documentHTML.findChildren("div", recursive=False)
@@ -39,25 +40,28 @@ sectionsContentId = []
 documentBahasa = ""
 for index in range(len(children)):
     if index == 0:
-        content = children[index].get_text()
+        content = list(
+            filter(bool, children[index].get_text(strip=False).splitlines()))
         sectionsContent.append(content)
-        contentId1 = ts.translate(content, dest="id").text
-        sectionsContentId.append(contentId1)
-        documentBahasa += contentId1 + "\n"
+        # contentId1 = ts.translate(
+        #     children[index].get_text(strip=False), dest="id").text
+        # sectionsContentId.append(list(filter(bool, contentId1.splitlines())))
+        # documentBahasa += "".join(contentId1) + "\n"
     else:
         grandChildren = children[index].findChildren("div", recursive=False)
         sections.append(grandChildren[0].getText().replace("\n", ""))
         sectionsId.append(
             (grandChildren[0].getText().replace("\n", "")))
-        text = ''
+        text = []
         for index2 in range(len(grandChildren)):
             if index2 > 0:
-                text = text + grandChildren[index2].get_text()
+                text.extend(
+                    list(filter(bool, grandChildren[index2].get_text(strip=False).splitlines())))
 
         sectionsContent.append(text)
-        contentId2 = ts.translate(text, dest="id").text
-        sectionsContentId.append(contentId2)
-        documentBahasa += contentId2 + "\n"
+        # contentId2 = ts.translate("\n".join(text), dest="id").text
+        # sectionsContentId.append(list(filter(bool, contentId2.splitlines())))
+        # documentBahasa += "".join(contentId2) + "\n"
 
 # processing data per section
 keywords_data = keywordFunc()
@@ -79,10 +83,6 @@ for section in sections:
         sectionCategory.append("section_extra_en")
         sectionCategoryId.append("section_extra_id")
 
-print(sections, sectionsId)
-print("================================")
-print(sectionCategory, sectionCategoryId)
-
 # MAPPING DATA PER SECTION
 
 sectionsObject = Sections()
@@ -90,14 +90,18 @@ sectionsObject = Sections()
 for index in range(len(sectionCategory)):
     for attr, value in sectionsObject.__dict__.items():
         if sectionCategory[index] == attr:
-            newValue = value+"\n"+sectionsContent[index]
+            newValue = value
+            # newValue.extend(value+"\n"+sectionsContent[index])
+            newValue.extend(sectionsContent[index])
             setattr(sectionsObject, attr, newValue)
 
-for index in range(len(sectionCategoryId)):
-    for attr, value in sectionsObject.__dict__.items():
-        if sectionCategoryId[index] == attr:
-            newValue = value+"\n"+sectionsContentId[index]
-            setattr(sectionsObject, attr, newValue)
+# for index in range(len(sectionCategoryId)):
+#     for attr, value in sectionsObject.__dict__.items():
+#         if sectionCategoryId[index] == attr:
+#             newValue = value
+#             # newValue = value+"\n"+sectionsContentId[index]
+#             newValue.extend(sectionsContentId[index])
+#             setattr(sectionsObject, attr, newValue)
 
 # create folder
 folder_name = datetime.now().strftime(
@@ -107,7 +111,7 @@ os.mkdir("../cv-data/"+folder_name)
 
 # save files
 fileENhtml = open("../cv-data/"+folder_name+"/index.html", "w+")
-fileENhtml.write(content)
+fileENhtml.write('\n'.join(content))
 fileENhtml.close()
 
 fileEN = open("../cv-data/"+folder_name+"/en.txt", "w+")
@@ -133,9 +137,13 @@ fileSections.close()
 
 driver.close()
 
+# print(sectionsObject.__dict__)
+print(sectionsObject.__dict__,
+      "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
 # send data to server
 r = requests.post('http://localhost:8080/insert/cv',
-                  json={"Folder": folder_name, "Title": title, "HTML": "", "En": document, "Id": documentBahasa, "Score": score, "Sections": sections, "SectionCategory": sectionCategory, "SectionsId": sectionsId, "SectionCategoryId": sectionCategoryId, "SectionsContent": sectionsObject.__dict__})
+                  json={"Folder": folder_name, "Title": title, "HTML": "", "En": document, "Id": documentBahasa, "Score": score, "Sections": sections, "SectionCategory": sectionCategory, "SectionsId": sectionsId, "SectionCategoryId": sectionCategoryId, "SectionsContent": sectionsObject.__dict__, "ListSectionsContent": sectionsContent, "ListSectionsContentId": sectionsContentId})
 print(r, "successfully send data")
 
 
