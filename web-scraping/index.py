@@ -138,7 +138,7 @@ fileSections.close()
 driver.close()
 
 # print(sectionsObject.__dict__)
-print(sectionsObject.__dict__,
+print(sectionsContent,
       "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 # send data to server

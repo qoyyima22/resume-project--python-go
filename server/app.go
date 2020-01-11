@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"github.com/mitchellh/mapstructure"
 )
@@ -111,7 +111,7 @@ func insertToTable(Folder string, Title string, HTML string, En string, Id strin
 	defer db.Close()
 
 	sqlStatement := `
-	INSERT INTO cvs (
+	INSERT INTO cvs3 (
 		id,
 		created_at,
 		title,
@@ -200,36 +200,36 @@ func insertToTable(Folder string, Title string, HTML string, En string, Id strin
 		Id,
 		Score,
 		Folder,
-		strings.Join(nsc.Section_work_experience_en, ", "),
-		strings.Join(nsc.Section_work_experience_id, ", "),
-		strings.Join(nsc.Section_educations_en, ", "),
-		strings.Join(nsc.Section_educations_id, ", "),
-		strings.Join(nsc.Section_skills_en, ", "),
-		strings.Join(nsc.Section_skills_id, ", "),
-		strings.Join(nsc.Section_summary_en, ", "),
-		strings.Join(nsc.Section_summary_id, ", "),
-		strings.Join(nsc.Section_interests_en, ", "),
-		strings.Join(nsc.Section_interests_id, ", "),
-		strings.Join(nsc.Section_extras_en, ", "),
-		strings.Join(nsc.Section_extras_id, ", "),
-		strings.Join(nsc.Section_languages_en, ", "),
-		strings.Join(nsc.Section_languages_id, ", "),
-		strings.Join(nsc.Section_title_en, ", "),
-		strings.Join(nsc.Section_title_id, ", "),
-		strings.Join(nsc.Section_affiliations_en, ", "),
-		strings.Join(nsc.Section_affiliations_id, ", "),
-		strings.Join(nsc.Section_certifications_en, ", "),
-		strings.Join(nsc.Section_certifications_id, ", "),
-		strings.Join(nsc.Section_awards_en, ", "),
-		strings.Join(nsc.Section_awards_id, ", "),
-		strings.Join(Sections, ", "),
-		strings.Join(SectionsId, ", "),
-		strings.Join(SectionCategory, ", "),
-		strings.Join(SectionCategoryId, ", "),
-		"",
-		"",
-		// strings.Join(ListSectionsContent, ", "),
-		// strings.Join(ListSectionsContentId, ", "),
+		pq.Array(nsc.Section_work_experience_en),
+		pq.Array(nsc.Section_work_experience_id),
+		pq.Array(nsc.Section_educations_en),
+		pq.Array(nsc.Section_educations_id),
+		pq.Array(nsc.Section_skills_en),
+		pq.Array(nsc.Section_skills_id),
+		pq.Array(nsc.Section_summary_en),
+		pq.Array(nsc.Section_summary_id),
+		pq.Array(nsc.Section_interests_en),
+		pq.Array(nsc.Section_interests_id),
+		pq.Array(nsc.Section_extras_en),
+		pq.Array(nsc.Section_extras_id),
+		pq.Array(nsc.Section_languages_en),
+		pq.Array(nsc.Section_languages_id),
+		pq.Array(nsc.Section_title_en),
+		pq.Array(nsc.Section_title_id),
+		pq.Array(nsc.Section_affiliations_en),
+		pq.Array(nsc.Section_affiliations_id),
+		pq.Array(nsc.Section_certifications_en),
+		pq.Array(nsc.Section_certifications_id),
+		pq.Array(nsc.Section_awards_en),
+		pq.Array(nsc.Section_awards_id),
+		pq.Array(Sections),
+		pq.Array(SectionsId),
+		pq.Array(SectionCategory),
+		pq.Array(SectionCategoryId),
+		// nil,
+		// nil,
+		pq.Array(ListSectionsContent),
+		pq.Array(ListSectionsContentId),
 	).
 		Scan(&id)
 	if err != nil {
@@ -251,7 +251,7 @@ func getLastId() int {
 
 	sqlStatement := `
 	SELECT id
-	FROM cvs
+	FROM cvs3
 	ORDER BY id DESC
 	LIMIT 1
 	`
